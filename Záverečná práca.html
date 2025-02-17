@@ -1,0 +1,115 @@
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Záverečná práca</title>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, query, where } from 'https://www.gstatic.com/firebasejs/9.8.1/firebase-firestore.js';
+
+        // Firebase konfigurácia
+        const firebaseConfig = {
+            apiKey: "AIzaSyDeR53hgZuwcQUBtlflIiicP-mUth-meBA",
+            authDomain: "zaverecna-praca-6ff35.firebaseapp.com",
+            projectId: "zaverecna-praca-6ff35",
+            storageBucket: "zaverecna-praca-6ff35.firebasestorage.app",
+            messagingSenderId: "638697811438",
+            appId: "1:638697811438:web:fe1625e5a21f3701bf72ff"
+        };
+
+        // Inicializácia Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Funkcia na extrahovanie ID videa z URL
+        function extractVideoId(url) {
+            let videoId = "";
+            if (url.includes("youtube.com/watch?v=")) {
+                videoId = url.split("v=")[1].split("&")[0];
+            } else if (url.includes("youtu.be/")) {
+                videoId = url.split("youtu.be/")[1].split("?")[0];
+            } else {
+                alert("Neplatná URL adresa!");
+                return null;
+            }
+            return videoId;
+        }
+
+        // Funkcia na pridanie videa do Firestore
+        function addVideo() {
+            let url = document.getElementById('youtubeUrl').value;
+            let videoId = extractVideoId(url);
+            if (!videoId) return;
+
+            // Pridanie videa do Firestore
+            addDoc(collection(db, "videos"), {
+                videoId: videoId
+            }).then(() => {
+                displayVideo(videoId);
+                document.getElementById('youtubeUrl').value = ''; // Vyprázdni vstupné pole
+            }).catch((error) => {
+                alert("Chyba pri pridávaní videa: " + error);
+            });
+        }
+
+        // Funkcia na zobrazenie videa na stránke
+        function displayVideo(videoId) {
+            let videoContainer = document.createElement("div");
+            videoContainer.classList.add("video-item");
+
+            let iframe = document.createElement("iframe");
+            iframe.src = `https://www.youtube.com/embed/${videoId}`;
+            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+            iframe.allowFullscreen = true;
+
+            let removeButton = document.createElement("button");
+            removeButton.textContent = "×";
+            removeButton.classList.add("remove-btn");
+            removeButton.onclick = function () {
+                removeVideo(videoId, videoContainer);
+            };
+
+            videoContainer.appendChild(removeButton);
+            videoContainer.appendChild(iframe);
+            document.getElementById('videos').appendChild(videoContainer);
+        }
+
+        // Funkcia na odstránenie videa
+        function removeVideo(videoId, element) {
+            // Odstránenie videa z Firestore
+            const q = query(collection(db, "videos"), where("videoId", "==", videoId));
+            getDocs(q).then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    deleteDoc(doc.ref).then(() => {
+                        console.log("Video odstránené");
+                    }).catch((error) => {
+                        alert("Chyba pri odstraňovaní videa: " + error);
+                    });
+                });
+            });
+
+            // Odstránenie videa z DOM
+            element.remove();
+        }
+
+        // Načítanie videí z Firestore po načítaní stránky
+        document.addEventListener("DOMContentLoaded", () => {
+            getDocs(collection(db, "videos")).then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    displayVideo(doc.data().videoId);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <img src="logo.png" alt="Logo" class="logo">
+    <h1>Záverečná práca</h1>
+    <p>Vložte odkaz na YouTube video:</p>
+    <input type="text" id="youtubeUrl" placeholder="Vložte URL videa">
+    <button onclick="addVideo()">Pridať video</button>
+    
+    <div id="videos" class="video-container"></div>
+</body>
+</html>
