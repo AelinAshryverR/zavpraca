@@ -1,9 +1,9 @@
+<!DOCTYPE html>
 <html lang="sk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Záverečná práca</title>
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js';
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, query, where } from 'https://www.gstatic.com/firebasejs/9.8.1/firebase-firestore.js';
@@ -37,7 +37,8 @@
         }
 
         // Funkcia na pridanie videa do Firestore
-        function addVideo() {
+        function addVideo(event) {
+            event.preventDefault(); // Zabraňuje obnovení stránky
             let url = document.getElementById('youtubeUrl').value;
             let videoId = extractVideoId(url);
             if (!videoId) return;
@@ -102,13 +103,39 @@
             });
         });
     </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #videos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .video-item {
+            margin: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        iframe {
+            width: 560px;
+            height: 315px;
+        }
+        .remove-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <img src="logo.png" alt="Logo" class="logo">
     <h1>Záverečná práca</h1>
     <p>Vložte odkaz na YouTube video:</p>
     <input type="text" id="youtubeUrl" placeholder="Vložte URL videa">
-    <button onclick="addVideo()">Pridať video</button>
+    <button onclick="addVideo(event)">Pridať video</button>
     
     <div id="videos" class="video-container"></div>
 </body>
