@@ -1,9 +1,19 @@
-<!DOCTYPE html>
 <html lang="sk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Záverečná práca</title>
+</head>
+<body>
+    <img src="logo.png" alt="Logo" class="logo">
+    <h1>Záverečná práca</h1>
+    <p>Vložte odkaz na YouTube video:</p>
+    <input type="text" id="youtubeUrl" placeholder="Vložte URL videa">
+    <button onclick="addVideo(event)">Pridať video</button>
+
+    <div id="videos" class="video-container"></div>
+
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js';
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, query, where } from 'https://www.gstatic.com/firebasejs/9.8.1/firebase-firestore.js';
@@ -25,14 +35,19 @@
         // Funkcia na extrahovanie ID videa z URL
         function extractVideoId(url) {
             let videoId = "";
+            console.log("Vstupná URL: ", url); // Log pre URL
+
             if (url.includes("youtube.com/watch?v=")) {
                 videoId = url.split("v=")[1].split("&")[0];
             } else if (url.includes("youtu.be/")) {
                 videoId = url.split("youtu.be/")[1].split("?")[0];
             } else {
                 alert("Neplatná URL adresa!");
+                console.error("Neplatná URL adresa!", url);
                 return null;
             }
+
+            console.log("Extrahované video ID: ", videoId); // Log pre ID
             return videoId;
         }
 
@@ -44,18 +59,23 @@
             if (!videoId) return;
 
             // Pridanie videa do Firestore
+            console.log("Pridávam video s ID: ", videoId);
+
             addDoc(collection(db, "videos"), {
                 videoId: videoId
-            }).then(() => {
-                displayVideo(videoId);
+            }).then((docRef) => {
+                console.log("Video bolo pridané do Firestore, ID:", docRef.id);
+                displayVideo(videoId); // Zobrazenie videa na stránke
                 document.getElementById('youtubeUrl').value = ''; // Vyprázdni vstupné pole
             }).catch((error) => {
-                alert("Chyba pri pridávaní videa: " + error);
+                console.error("Chyba pri pridávaní videa: ", error); // Logovanie chyby
             });
         }
 
         // Funkcia na zobrazenie videa na stránke
         function displayVideo(videoId) {
+            console.log("Zobrazujem video s ID: " + videoId);
+
             let videoContainer = document.createElement("div");
             videoContainer.classList.add("video-item");
 
@@ -103,40 +123,5 @@
             });
         });
     </script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        #videos {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .video-item {
-            margin: 10px;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-        iframe {
-            width: 560px;
-            height: 315px;
-        }
-        .remove-btn {
-            background-color: red;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Záverečná práca</h1>
-    <p>Vložte odkaz na YouTube video:</p>
-    <input type="text" id="youtubeUrl" placeholder="Vložte URL videa">
-    <button onclick="addVideo(event)">Pridať video</button>
-    
-    <div id="videos" class="video-container"></div>
 </body>
 </html>
